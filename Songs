@@ -1,0 +1,99 @@
+cat > 1.sql <<'SQL'
+SELECT name
+FROM songs;
+SQL
+
+cat > 2.sql <<'SQL'
+SELECT name
+FROM songs
+ORDER BY tempo ASC;
+SQL
+
+cat > 3.sql <<'SQL'
+SELECT name
+FROM songs
+ORDER BY duration_ms DESC
+LIMIT 5;
+SQL
+
+cat > 4.sql <<'SQL'
+SELECT name
+FROM songs
+WHERE danceability > 0.75
+  AND energy > 0.75
+  AND valence > 0.75;
+SQL
+
+cat > 5.sql <<'SQL'
+SELECT AVG(energy)
+FROM songs;
+SQL
+
+cat > 6.sql <<'SQL'
+SELECT songs.name
+FROM songs
+JOIN artists ON songs.artist_id = artists.id
+WHERE artists.name = 'Post Malone';
+SQL
+
+cat > 7.sql <<'SQL'
+SELECT AVG(songs.energy)
+FROM songs
+JOIN artists ON songs.artist_id = artists.id
+WHERE artists.name = 'Drake';
+SQL
+
+cat > 8.sql <<'SQL'
+SELECT name
+FROM songs
+WHERE name LIKE '%feat.%';
+SQL
+
+python3 - <<'PY'
+import sqlite3
+
+with sqlite3.connect("songs.db") as connection:
+    energy, valence, danceability = connection.execute(
+        "SELECT AVG(energy), AVG(valence), AVG(danceability) FROM songs"
+    ).fetchone()
+
+    for number in range(1, 9):
+        with open(f"{number}.sql") as sql_file:
+            connection.execute(sql_file.read()).fetchall()
+
+def describe(value):
+    if value < 0.4:
+        return "low"
+    if value > 0.6:
+        return "high"
+    return "moderate"
+
+answer = (
+    "1. Audio aura\n\n"
+    f"The average energy is {energy:.3f}, average valence is "
+    f"{valence:.3f}, and average danceability is {danceability:.3f}. "
+    f"Using a simple interpretation of these averages, this listener's "
+    f"music has {describe(energy)} energy, {describe(valence)} "
+    f"positivity, and {describe(danceability)} danceability. "
+    "These describe the musical qualities of the selected songs, "
+    "rather than proving how the listener feels.\n\n"
+    "2. Limitations and improvements\n\n"
+    "Averages hide variation: a listener could enjoy both very happy "
+    "and very sad songs while having moderate average valence. "
+    "This calculation also gives every song equal importance, even "
+    "though some songs may have been played much more frequently. "
+    "The top 100 songs exclude the rest of the listener's music. "
+    "A better approach would use listening time or play counts as "
+    "weights, include more listening history, and examine separate "
+    "groups of songs or listening sessions. This would show changes "
+    "in musical preferences across different times and situations.\n"
+)
+
+with open("answers.txt", "w") as output:
+    output.write(answer)
+
+print("Created 1.sql through 8.sql and answers.txt.")
+print("All eight SQL queries ran successfully.")
+PY
+
+check50 cs50/problems/2026/x/songs
